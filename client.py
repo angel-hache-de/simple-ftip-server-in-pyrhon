@@ -98,14 +98,6 @@ class Client(EndDevice):
 
         print(s.recv(BUFFER_SIZE).decode("utf-8"))
 
-    def receive_files_list(self):
-      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((self.host, self.port))
-
-        # Send the folder name
-        data = s.recv(BUFFER_SIZE).decode("UTF-8")
-        print(data)
-
     def get_remotes_paths(self, opt):
       with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((self.host, self.port))
