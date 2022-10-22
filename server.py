@@ -88,6 +88,7 @@ class Server(EndDevice):
 
   def receive_paths_list(self, client, include_size=False):
     data = client.recv(BUFFER_SIZE).decode("utf-8")
+
     paths_list = json.loads(data)
 
     paths = []
@@ -107,8 +108,9 @@ class Server(EndDevice):
   # OVERWRITE METHODS
   def send_files(self, client):
     files = self.receive_paths_list(client)
+    files = list(get_files_size(files))
 
-    super().send_files(client, files, "")
+    super().send_files(socket=client, files=files, dir="")
 
   def send_directory(self, client):
     dirs = self.receive_paths_list(client)

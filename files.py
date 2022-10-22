@@ -64,8 +64,11 @@ def list_files_pretty(path, number_spaces=0):
 def get_files():
     Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
     files = askopenfilenames() # show an "Open" dialog box and return the path to the selected file
-    for file in files:
-        yield (file, os.path.getsize(file))
+    return get_files_size(files)
+
+def get_files_size(files):
+  for file in files:
+    yield (file, os.path.getsize(file))
 
 def get_directory():
     Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
@@ -104,7 +107,6 @@ class EndDevice:
     number_files = number_and_dir.get("number_files")
     cleaned_dir = remove_initial_slash(number_and_dir.get("dir"))
     destination_folder = os.path.join(os.path.curdir, cleaned_dir)
-    
 
     for i in range(number_files):
       received = socket.recv(BUFFER_SIZE).decode("utf-8")
@@ -145,7 +147,7 @@ class EndDevice:
     if not os.path.exists(folder):
       os.mkdir(folder)
 
-    print("folder " + folder)
+    #print("folder " + folder)
     EndDevice.receive_files(
       self=self,
       socket=socket,
@@ -157,6 +159,7 @@ class EndDevice:
     os.remove(os.path.join(folder, "zip.zip"))
 
   # Files is none when called by Client
+  # @param files list of tuple with the file name and size.
   def send_files(self, socket, files, dir=""):
     number_and_dir = {"number_files": len(files), "dir": dir}
     #Send the amount of files that will be send
@@ -165,7 +168,7 @@ class EndDevice:
     for file, size in files:
       print(f"Preparing to send: {os.path.basename(file)} / {size}B")
       socket.sendall(f"{file}{DIVIDER}{size}".encode("utf-8"))
-
+      time.sleep(0.1)
       with open(file, "rb") as f:
           bytes_sent = 0
           while True:
@@ -179,17 +182,17 @@ class EndDevice:
               socket.sendall(bytes_read)
               bytes_sent += len(bytes_read)
               # update the progress bar and "flush"
-              time.sleep(0.5)
+              #time.sleep(0.5)
               print(f"Sending: {str(int(bytes_sent*100/size))}%", end="\r")
-
       print("")
+      time.sleep(0.1)
 
-  def send_directory(self, socket, dir, remote_dir="/"):
+  def send_directory(self, socket, dir, remote_dir=""):
     basename = os.path.basename(dir)
-    remote_dir += basename
+    remote_dir += "/" + basename
     # Send the folder name
     socket.sendall(f"{remote_dir}".encode("utf-8"))
-    print("dir" + dir)
+    #print("dir" + dir)
     zip_size = zip_folder("zip", dir) #generates zip.zip
     EndDevice.send_files(
       self=self,
